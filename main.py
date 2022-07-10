@@ -15,17 +15,21 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 database = JSONDatabase()
 
-ADMIN_ID = '1094576056'
+ADMIN_ID = '641279751'
+# ADMIN_ID = '1094576056'
 
 # Message Handlers
 @dp.message_handler(commands=['start', 'Start'])
 async def start(message: types.Message):
+    database.initialize_user(str(message.from_user.id))
     await message.reply("Would you like to add a new project ?", reply_markup=start_menu)
 
 @dp.message_handler()
 async def chat(message: types.Message):
     user_id = str(message.from_user.id)
     step = database.get_user_step(user_id)
+
+    print(user_id)
 
     if step == 'name_project':
         database.insert_data(user_id, step, str(message.text))
@@ -43,6 +47,9 @@ async def chat(message: types.Message):
 
         data = database.user_data_complete(str(message.from_user.id))
         data.pop('skip')
+        data['user_id'] = str(message.from_user.id)
+        data['username'] = str(message.from_user.username)
+        data['url'] = str(message.from_user.url)
         if data:
             await bot.send_message(ADMIN_ID, data)
             for message_id in data['documents']:
